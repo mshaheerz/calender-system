@@ -5,7 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { GanttJobCard } from "./gantt-job-card";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
-import { useGanttContext } from "./gantt-context";
+import { useGanttContext } from "@/lib/gantt/gantt-context";
 import { addHours, addDays, addWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -164,7 +164,7 @@ export const GanttTechnicianRow = memo(
         {/* Technician Info */}
         <div className="w-48 flex-shrink-0 border-r p-3 flex items-start gap-2 pt-4">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={technician.image} />
+            <AvatarImage src={technician.image || "/placeholder.svg"} />
             <AvatarFallback className="text-xs bg-brand-100 text-brand-700">
               {fallback}
             </AvatarFallback>

@@ -18,7 +18,7 @@ import {
   setMinutes,
   setSeconds,
 } from "date-fns";
-import { useGanttContext } from "./gantt-context";
+import { useGanttContext } from "@/lib/gantt/gantt-context";
 import { GanttTechnicianRow } from "./gantt-technician-row";
 import { GanttMonthCalendar } from "./gantt-month-calendar";
 import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
@@ -99,7 +99,7 @@ export default function DispatchGanttTimeline({
   const timelineScrollRef = useRef(null);
 
   // Use context from parent instead of creating new one
-  const { instanceId } = useGanttContext();
+  const { instanceId, setIsDragging } = useGanttContext();
 
   // Generate time slots based on view mode
   const timeSlots = useMemo(() => {
@@ -230,8 +230,6 @@ export default function DispatchGanttTimeline({
   }, [instanceId]);
 
   // Monitor drag and drop events
-  const { setIsDragging } = useGanttContext();
-
   useEffect(() => {
     return combine(
       monitorForElements({

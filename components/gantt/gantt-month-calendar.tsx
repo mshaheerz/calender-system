@@ -24,7 +24,7 @@ import {
   dropTargetForElements,
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview";
-import { useGanttContext } from "./gantt-context";
+import { useGanttContext } from "@/lib/gantt/gantt-context";
 import ReactDOM from "react-dom";
 
 const DAYS_OF_WEEK = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
@@ -68,7 +68,7 @@ export function GanttMonthCalendar({ technicians, jobs, currentDate }) {
               >
                 <div className="relative">
                   <Avatar className="h-10 w-10 border border-grey-200">
-                    <AvatarImage src={tech.image} />
+                    <AvatarImage src={tech.image || "/placeholder.svg"} />
                     <AvatarFallback className="bg-brand-100 text-brand-700 font-bold text-xs">
                       {tech.name.charAt(0).toUpperCase()}
                       {tech.name.split(" ")[1]?.charAt(0).toUpperCase() || ""}

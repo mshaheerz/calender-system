@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { disableNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/disable-native-drag-preview";
-import { useGanttContext } from "./gantt-context";
+import { useGanttContext } from "@/lib/gantt/gantt-context";
 import { MapPin } from "lucide-react";
 import { format } from "date-fns";
 

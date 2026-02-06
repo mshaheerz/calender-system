@@ -1,0 +1,245 @@
+import { CalendarEvent, Resource } from './types';
+import { addHours, addDays, addMinutes } from 'date-fns';
+
+const now = new Date();
+
+export const mockResources: Resource[] = [
+  {
+    id: 'tech-1',
+    name: 'John Smith',
+    type: 'technician',
+    color: '#3B82F6',
+    availability: {
+      startTime: '08:00',
+      endTime: '17:00',
+      days: [1, 2, 3, 4, 5],
+    },
+  },
+  {
+    id: 'tech-2',
+    name: 'Sarah Johnson',
+    type: 'technician',
+    color: '#8B5CF6',
+    availability: {
+      startTime: '09:00',
+      endTime: '18:00',
+      days: [1, 2, 3, 4, 5],
+    },
+  },
+  {
+    id: 'tech-3',
+    name: 'Mike Chen',
+    type: 'technician',
+    color: '#EC4899',
+    availability: {
+      startTime: '07:00',
+      endTime: '16:00',
+      days: [1, 2, 3, 4, 5],
+    },
+  },
+  {
+    id: 'room-1',
+    name: 'Conference Room A',
+    type: 'room',
+    color: '#F59E0B',
+  },
+  {
+    id: 'room-2',
+    name: 'Conference Room B',
+    type: 'room',
+    color: '#10B981',
+  },
+  {
+    id: 'eq-1',
+    name: 'Projector',
+    type: 'equipment',
+    color: '#06B6D4',
+  },
+];
+
+export const mockEvents: CalendarEvent[] = [
+  // Today's events
+  {
+    id: 'event-1',
+    title: 'Team Standup',
+    description: 'Daily team synchronization',
+    type: 'meeting',
+    status: 'scheduled',
+    startTime: addHours(now, 1),
+    endTime: addMinutes(addHours(now, 1), 30),
+    resourceIds: ['tech-1', 'tech-2', 'tech-3'],
+    location: 'Conference Room A',
+    priority: 'high',
+  },
+  {
+    id: 'event-2',
+    title: 'Client Call',
+    description: 'Quarterly business review',
+    type: 'meeting',
+    status: 'scheduled',
+    startTime: addHours(now, 3),
+    endTime: addHours(now, 4),
+    resourceId: 'tech-1',
+    location: 'Zoom',
+    priority: 'high',
+  },
+  {
+    id: 'event-3',
+    title: 'Project Deadline',
+    description: 'Q1 deliverables submission',
+    type: 'deadline',
+    status: 'in-progress',
+    startTime: addDays(now, 2),
+    endTime: addDays(now, 2),
+    priority: 'high',
+    allDay: true,
+  },
+  {
+    id: 'event-4',
+    title: 'System Maintenance',
+    description: 'Server updates and patches',
+    type: 'maintenance',
+    status: 'scheduled',
+    startTime: addHours(now, 5),
+    endTime: addHours(now, 7),
+    resourceIds: ['tech-2', 'tech-3'],
+    priority: 'medium',
+  },
+  {
+    id: 'event-5',
+    title: 'Lunch Break',
+    description: 'Team lunch',
+    type: 'break',
+    status: 'scheduled',
+    startTime: addHours(now, 4),
+    endTime: addHours(now, 5),
+    resourceIds: ['tech-1', 'tech-2'],
+  },
+
+  // Tomorrow
+  {
+    id: 'event-6',
+    title: 'New Feature Review',
+    description: 'Review Q2 feature requests',
+    type: 'meeting',
+    status: 'scheduled',
+    startTime: addHours(addDays(now, 1), 10),
+    endTime: addHours(addDays(now, 1), 11),
+    resourceIds: ['tech-1', 'tech-3'],
+    priority: 'high',
+  },
+  {
+    id: 'event-7',
+    title: 'Database Optimization Task',
+    description: 'Optimize slow queries',
+    type: 'task',
+    status: 'in-progress',
+    startTime: addHours(addDays(now, 1), 14),
+    endTime: addHours(addDays(now, 1), 16),
+    resourceId: 'tech-2',
+    priority: 'medium',
+  },
+
+  // This week
+  {
+    id: 'event-8',
+    title: 'Resource Planning',
+    description: 'Plan resource allocation for next quarter',
+    type: 'meeting',
+    status: 'scheduled',
+    startTime: addHours(addDays(now, 3), 9),
+    endTime: addHours(addDays(now, 3), 11),
+    resourceIds: ['tech-1', 'tech-2', 'tech-3'],
+    priority: 'high',
+  },
+  {
+    id: 'event-9',
+    title: 'Equipment Setup',
+    description: 'Install new monitoring equipment',
+    type: 'job',
+    status: 'pending',
+    startTime: addHours(addDays(now, 2), 8),
+    endTime: addHours(addDays(now, 2), 10),
+    resourceIds: ['tech-1'],
+    priority: 'medium',
+  },
+  {
+    id: 'event-10',
+    title: 'Staff Training',
+    description: 'New tool training session',
+    type: 'appointment',
+    status: 'scheduled',
+    startTime: addHours(addDays(now, 4), 14),
+    endTime: addHours(addDays(now, 4), 15),
+    resourceIds: ['tech-2', 'tech-3'],
+    priority: 'medium',
+  },
+
+  // Next week
+  {
+    id: 'event-11',
+    title: 'Client Presentation',
+    description: 'Present Q1 results to stakeholders',
+    type: 'meeting',
+    status: 'scheduled',
+    startTime: addHours(addDays(now, 7), 10),
+    endTime: addHours(addDays(now, 7), 11),
+    resourceId: 'tech-1',
+    location: 'Conference Room A',
+    priority: 'high',
+  },
+  {
+    id: 'event-12',
+    title: 'Vendor Meeting',
+    description: 'Discuss support contracts',
+    type: 'meeting',
+    status: 'scheduled',
+    startTime: addHours(addDays(now, 8), 14),
+    endTime: addHours(addDays(now, 8), 15),
+    resourceId: 'tech-3',
+    priority: 'medium',
+  },
+
+  // Resource allocations
+  {
+    id: 'event-13',
+    title: 'Tech-1 Reserved',
+    description: 'Reserved for project X',
+    type: 'resource-allocation',
+    status: 'scheduled',
+    startTime: addDays(now, 5),
+    endTime: addDays(now, 6),
+    resourceId: 'tech-1',
+    allDay: true,
+  },
+  {
+    id: 'event-14',
+    title: 'Conference Room B - Booked',
+    description: 'Full day booking',
+    type: 'resource-allocation',
+    status: 'scheduled',
+    startTime: addDays(now, 6),
+    endTime: addDays(now, 6),
+    resourceId: 'room-2',
+    allDay: true,
+  },
+];
+
+export const mockEventsByType = {
+  meetings: mockEvents.filter(e => e.type === 'meeting'),
+  tasks: mockEvents.filter(e => e.type === 'task'),
+  appointments: mockEvents.filter(e => e.type === 'appointment'),
+  deadlines: mockEvents.filter(e => e.type === 'deadline'),
+  jobs: mockEvents.filter(e => e.type === 'job'),
+  breaks: mockEvents.filter(e => e.type === 'break'),
+  maintenance: mockEvents.filter(e => e.type === 'maintenance'),
+  resourceAllocations: mockEvents.filter(e => e.type === 'resource-allocation'),
+};
+
+export const mockEventsByStatus = {
+  pending: mockEvents.filter(e => e.status === 'pending'),
+  scheduled: mockEvents.filter(e => e.status === 'scheduled'),
+  inProgress: mockEvents.filter(e => e.status === 'in-progress'),
+  completed: mockEvents.filter(e => e.status === 'completed'),
+  cancelled: mockEvents.filter(e => e.status === 'cancelled'),
+};

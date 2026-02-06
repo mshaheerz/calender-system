@@ -1,363 +1,382 @@
 'use client';
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Code2, Zap, Layers, Github } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-const FEATURES = [
-  {
-    icon: Zap,
-    title: 'High Performance',
-    description: 'Optimized rendering with memo and efficient state management',
-  },
-  {
-    icon: Layers,
-    title: 'Composable',
-    description: 'Build complex timelines from reusable, independent components',
-  },
-  {
-    icon: Code2,
-    title: 'TypeScript',
-    description: 'Full type safety with comprehensive type definitions',
-  },
-  {
-    icon: 'drag-drop',
-    title: 'Drag & Drop',
-    description: 'Powered by @atlaskit/pragmatic-drag-and-drop',
-  },
-];
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowLeft, Copy, Check } from 'lucide-react';
 
 export default function DocsPage() {
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
   return (
-    <div className="min-h-screen bg-grey-50">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
-      <div className="bg-gradient-to-r from-brand-600 to-brand-700 text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">Gantt Timeline Library</h1>
-          <p className="text-xl text-brand-100 mb-8 max-w-2xl">
-            A production-ready, open-source component library for building interactive timeline and Gantt chart interfaces with React.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              asChild
-              size="lg"
-              className="bg-white text-brand-600 hover:bg-grey-50"
-            >
-              <Link href="/playground">
-                Try Playground <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-brand-600 bg-transparent"
-            >
-              <a
-                href="https://github.com/yourusername/gantt-timeline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="mr-2 h-4 w-4" />
-                GitHub
-              </a>
-            </Button>
+      <div className="bg-background border-b border-border sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/">
+              <Button variant="outline" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold">Documentation</h1>
+              <p className="text-sm text-muted-foreground">Complete guide to the Calendar & Scheduling System</p>
+            </div>
           </div>
+          <Link href="/playground">
+            <Button>Try Demo</Button>
+          </Link>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {FEATURES.map((feature) => {
-            const Icon = feature.icon === 'drag-drop' ? null : feature.icon;
-            return (
-              <Card key={feature.title}>
-                <CardHeader>
-                  {Icon && <Icon className="h-8 w-8 text-brand-600 mb-3" />}
-                  {feature.icon === 'drag-drop' && (
-                    <div className="h-8 w-8 text-brand-600 mb-3 flex items-center justify-center">
-                      ⇄
-                    </div>
-                  )}
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-grey-600 text-sm">{feature.description}</p>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* Getting Started */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-4">Getting Started</h2>
+          
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Installation</CardTitle>
+              <CardDescription>Add the calendar system to your Next.js project</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-muted p-4 rounded-lg relative">
+                <pre className="text-sm overflow-auto">
+                  <code>{`npm install date-fns tiny-invariant
 
-        {/* Installation */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle>Installation</CardTitle>
-            <CardDescription>Get started with the Gantt Timeline library</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h3 className="font-semibold text-lg mb-3">1. Copy the components</h3>
-              <p className="text-grey-600 mb-4">
-                Copy the Gantt components from this repository to your project:
-              </p>
-              <pre className="bg-grey-900 text-grey-50 p-4 rounded-lg overflow-auto text-sm">
-                {`cp -r components/gantt your-project/components/
-cp -r lib/gantt your-project/lib/`}
-              </pre>
-            </div>
+# Copy components to your project
+cp -r lib/calendar your-project/lib/
+cp -r components/calendar your-project/components/`}</code>
+                </pre>
+                <button
+                  onClick={() => copyToClipboard('npm install date-fns tiny-invariant')}
+                  className="absolute top-2 right-2 p-2 hover:bg-background rounded transition-colors"
+                >
+                  {copiedCode ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                </button>
+              </div>
+            </CardContent>
+          </Card>
 
-            <div>
-              <h3 className="font-semibold text-lg mb-3">2. Install dependencies</h3>
-              <pre className="bg-grey-900 text-grey-50 p-4 rounded-lg overflow-auto text-sm">
-                {`npm install @atlaskit/pragmatic-drag-and-drop \\
-  @atlaskit/pragmatic-drag-and-drop-auto-scroll \\
-  date-fns tiny-invariant`}
-              </pre>
-            </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Start</CardTitle>
+              <CardDescription>Set up a working calendar in minutes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Step 1: Wrap with CalendarProvider</h4>
+                  <div className="bg-muted p-4 rounded-lg">
+                    <pre className="text-sm overflow-auto">
+                      <code>{`import { CalendarProvider } from '@/lib/calendar/calendar-context';
+import { Calendar } from '@/components/calendar';
+import { mockEvents, mockResources } from '@/lib/calendar/mock-data';
 
-            <div>
-              <h3 className="font-semibold text-lg mb-3">3. Wrap with GanttContext</h3>
-              <pre className="bg-grey-900 text-grey-50 p-4 rounded-lg overflow-auto text-sm">
-                {`import { GanttContext } from '@/lib/gantt/gantt-context';
-import { createGanttRegistry } from '@/lib/gantt/gantt-registry';
-
-export default function YourPage() {
-  const [registry] = useState(createGanttRegistry);
-  const [instanceId] = useState(() => Symbol('gantt'));
-
+export default function Page() {
   return (
-    <GanttContext.Provider value={{
-      instanceId,
-      registerJobCard: registry.registerJobCard,
-      registerTechnicianRow: registry.registerTechnicianRow,
-      viewMode: 'day',
-      isDragging: false,
-      setIsDragging: () => {},
-    }}>
-      {/* Your content */}
-    </GanttContext.Provider>
+    <CalendarProvider
+      initialEvents={mockEvents}
+      initialResources={mockResources}
+    >
+      <Calendar />
+    </CalendarProvider>
   );
-}`}
-              </pre>
-            </div>
-          </CardContent>
-        </Card>
+}`}</code>
+                    </pre>
+                  </div>
+                </div>
 
-        {/* Usage */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle>Basic Usage</CardTitle>
-            <CardDescription>Implement the Gantt timeline in your app</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <pre className="bg-grey-900 text-grey-50 p-4 rounded-lg overflow-auto text-sm">
-              {`import { GanttContainer } from '@/components/gantt';
-import type { Job } from '@/lib/gantt/types';
+                <div>
+                  <h4 className="font-semibold mb-2">Step 2: Use in layout.tsx</h4>
+                  <div className="bg-muted p-4 rounded-lg">
+                    <pre className="text-sm overflow-auto">
+                      <code>{`import { ThemeProvider } from '@/lib/calendar/theme';
 
-export default function SchedulePage() {
-  const [jobs, setJobs] = useState<Job[]>([
-    {
-      id: 'job-1',
-      technicianId: '1',
-      title: 'Service Visit',
-      startTime: new Date(),
-      endTime: new Date(Date.now() + 2*60*60*1000),
-      status: 'scheduled',
-      location: 'NYC',
-    },
-  ]);
-
+export default function RootLayout({ children }) {
   return (
-    <GanttContainer
-      technicians={technicians}
-      jobs={jobs}
-      viewMode="day"
-      currentDate={new Date()}
-      onJobMove={({ jobId, toTechnicianId, newStartTime }) => {
-        // Handle job move
-      }}
-      onJobCreate={(jobId, technicianId, startTime, endTime) => {
-        // Handle job creation
-      }}
-      onJobResize={(jobId, newStartTime, newEndTime) => {
-        // Handle job resize
-      }}
-    />
+    <html>
+      <body>
+        <ThemeProvider defaultMode="dark">
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
   );
-}`}
-            </pre>
-          </CardContent>
-        </Card>
+}`}</code>
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Views */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-4">View Variants</h2>
+          
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Day View</CardTitle>
+                <CardDescription>Hourly schedule with time slots and all-day events</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">Features:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                    <li>Hour-by-hour schedule view</li>
+                    <li>All-day events section at the top</li>
+                    <li>Drag events to reschedule</li>
+                    <li>Double-click to create new events</li>
+                    <li>Delete events with close button</li>
+                  </ul>
+                  <div className="bg-muted p-3 rounded text-xs font-mono mt-4">
+                    &lt;DayView date={'{date}'} startHour={6} endHour={22} /&gt;
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Week View</CardTitle>
+                <CardDescription>7-day calendar with hourly grid</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">Features:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                    <li>7-column layout for each day</li>
+                    <li>Sticky time labels</li>
+                    <li>Drag events across days</li>
+                    <li>Multi-hour event support</li>
+                    <li>Resource color coding</li>
+                  </ul>
+                  <div className="bg-muted p-3 rounded text-xs font-mono mt-4">
+                    &lt;WeekView date={'{date}'} showResources /&gt;
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Month View</CardTitle>
+                <CardDescription>Calendar grid with optional drag support</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">Features:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                    <li>Full month calendar grid</li>
+                    <li>Toggle drag mode on/off</li>
+                    <li>Event count per day</li>
+                    <li>Click to view day details</li>
+                    <li>Smooth navigation</li>
+                  </ul>
+                  <div className="bg-muted p-3 rounded text-xs font-mono mt-4">
+                    &lt;MonthView date={'{date}'} dragEnabled={'{true}'} /&gt;
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Resource Schedule</CardTitle>
+                <CardDescription>View all resources with their schedules</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground">Features:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                    <li>Group by resource/department</li>
+                    <li>Expandable resource rows</li>
+                    <li>Real-time availability</li>
+                    <li>Resource allocation view</li>
+                    <li>Color-coded by resource</li>
+                  </ul>
+                  <div className="bg-muted p-3 rounded text-xs font-mono mt-4">
+                    &lt;ResourceSchedule date={'{date}'} /&gt;
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Event Types */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-4">Event Types</h2>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { name: 'Meeting', color: 'bg-blue-500' },
+                  { name: 'Task', color: 'bg-purple-500' },
+                  { name: 'Appointment', color: 'bg-green-500' },
+                  { name: 'Deadline', color: 'bg-red-500' },
+                  { name: 'Job', color: 'bg-yellow-500' },
+                  { name: 'Break', color: 'bg-gray-500' },
+                  { name: 'Maintenance', color: 'bg-orange-500' },
+                  { name: 'Resource Alloc', color: 'bg-indigo-500' },
+                ].map(type => (
+                  <div key={type.name} className="flex items-center gap-2">
+                    <div className={`w-4 h-4 rounded ${type.color}`} />
+                    <span className="text-sm">{type.name}</span>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Event Statuses */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-4">Event Statuses</h2>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-2 text-sm">
+                <p><span className="font-semibold">pending</span> - Not yet started</p>
+                <p><span className="font-semibold">in-progress</span> - Currently active</p>
+                <p><span className="font-semibold">scheduled</span> - Planned for future</p>
+                <p><span className="font-semibold">completed</span> - Finished</p>
+                <p><span className="font-semibold">cancelled</span> - Cancelled/voided</p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Theme System */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-4">Theme System</h2>
+          <Card>
+            <CardHeader>
+              <CardTitle>Dark & Light Mode</CardTitle>
+              <CardDescription>Built-in theme support with persistence</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Using the Theme Hook</h4>
+                  <div className="bg-muted p-4 rounded-lg">
+                    <pre className="text-sm overflow-auto">
+                      <code>{`import { useTheme } from '@/lib/calendar/theme';
+
+export function MyComponent() {
+  const { mode, toggleTheme } = useTheme();
+  
+  return (
+    <button onClick={toggleTheme}>
+      Current mode: {mode}
+    </button>
+  );
+}`}</code>
+                    </pre>
+                  </div>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 p-4 rounded-lg text-sm">
+                  <p className="font-semibold mb-1">Note:</p>
+                  <p>Theme preference is automatically saved to localStorage and persists across sessions.</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
 
         {/* API Reference */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-4">API Reference</h2>
+          
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">GanttContainer Props</CardTitle>
+              <CardTitle>useCalendarContext()</CardTitle>
+              <CardDescription>Access calendar state and methods</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
-              <div>
-                <code className="font-mono bg-grey-100 px-2 py-1 rounded text-brand-600">
-                  technicians
-                </code>
-                <p className="text-grey-600 mt-1">Array of technician objects with id and name</p>
-              </div>
-              <div>
-                <code className="font-mono bg-grey-100 px-2 py-1 rounded text-brand-600">
-                  jobs
-                </code>
-                <p className="text-grey-600 mt-1">Array of Job objects with schedule details</p>
-              </div>
-              <div>
-                <code className="font-mono bg-grey-100 px-2 py-1 rounded text-brand-600">
-                  viewMode
-                </code>
-                <p className="text-grey-600 mt-1">&apos;day&apos; | &apos;week&apos; | &apos;month&apos;</p>
-              </div>
-              <div>
-                <code className="font-mono bg-grey-100 px-2 py-1 rounded text-brand-600">
-                  currentDate
-                </code>
-                <p className="text-grey-600 mt-1">Current date for the timeline viewport</p>
-              </div>
-              <div>
-                <code className="font-mono bg-grey-100 px-2 py-1 rounded text-brand-600">
-                  onJobMove
-                </code>
-                <p className="text-grey-600 mt-1">Callback when a job is moved</p>
+            <CardContent>
+              <div className="bg-muted p-4 rounded-lg text-sm space-y-2 font-mono">
+                <p className="text-muted-foreground">// Returns:</p>
+                <p className="text-muted-foreground">{`{`}</p>
+                <p className="ml-4">events: CalendarEvent[]</p>
+                <p className="ml-4">resources: Resource[]</p>
+                <p className="ml-4">selectedDate: Date</p>
+                <p className="ml-4">viewMode: ViewMode</p>
+                <p className="ml-4">themeMode: ThemeMode</p>
+                <p className="ml-4">dragEnabled: boolean</p>
+                <p className="ml-4">addEvent: (event) =&gt; void</p>
+                <p className="ml-4">updateEvent: (id, changes) =&gt; void</p>
+                <p className="ml-4">deleteEvent: (id) =&gt; void</p>
+                <p className="ml-4">selectDate: (date) =&gt; void</p>
+                <p className="ml-4">setViewMode: (mode) =&gt; void</p>
+                <p className="ml-4">setThemeMode: (mode) =&gt; void</p>
+                <p className="text-muted-foreground">{`}`}</p>
               </div>
             </CardContent>
           </Card>
+        </section>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Job Type Definition</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <pre className="bg-grey-100 p-3 rounded-lg overflow-auto text-xs">
-                {`interface Job {
-  id: string;
-  technicianId: string;
-  title: string;
-  location?: string;
-  startTime: Date;
-  endTime: Date;
-  status: JobStatus;
-  priority?: 'low' | 'medium' | 'high';
-  description?: string;
-}`}
-              </pre>
-              <p className="text-grey-600">
-                <code className="font-mono bg-grey-100 px-2 py-1 rounded">
-                  JobStatus
-                </code>
-                : &apos;scheduled&apos; | &apos;in_progress&apos; | &apos;completed&apos; | &apos;cancelled&apos;
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Support */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold mb-4">Support & Resources</h2>
+          <div className="grid gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-1">GitHub Repository</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      View source code, open issues, and contribute to the project.
+                    </p>
+                    <a href="#" className="text-primary font-semibold text-sm">
+                      github.com/your-org/calendar-system →
+                    </a>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* View Modes */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle>View Modes</CardTitle>
-            <CardDescription>Switch between different timeline perspectives</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <Badge>Day View</Badge>
-                <p className="text-grey-600">
-                  Hour-by-hour timeline showing jobs throughout a single day. Perfect for detailed scheduling.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Badge variant="brand">Week View</Badge>
-                <p className="text-grey-600">
-                  Daily blocks across a week. Great for medium-term planning and resource allocation.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Badge variant="success">Month View</Badge>
-                <p className="text-grey-600">
-                  Calendar-based layout showing entire months. Ideal for high-level planning.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <div>
+                    <h4 className="font-semibold mb-1">TypeScript Types</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Full type definitions available at lib/calendar/types.ts
+                    </p>
+                    <code className="text-primary font-mono text-sm">
+                      lib/calendar/types.ts
+                    </code>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
-        {/* Drag and Drop */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle>Drag & Drop Features</CardTitle>
-            <CardDescription>Powered by Atlaskit Pragmatic Drag and Drop</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">Moving Jobs</h4>
-                <p className="text-grey-600">
-                  Drag any job card to move it to a different technician or time slot. The timeline automatically calculates the precise start time based on drop location.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Resizing Jobs</h4>
-                <p className="text-grey-600">
-                  Hover over a job to reveal resize handles. Drag the left edge to adjust start time or the right edge to adjust end time. Minimum duration is 15 minutes.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Auto-scrolling</h4>
-                <p className="text-grey-600">
-                  When dragging near edges, the timeline automatically scrolls to reveal more content. Smooth and responsive scrolling support.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Visual Feedback</h4>
-                <p className="text-grey-600">
-                  Real-time preview shows where the job will land. Cards highlight during drag, and drop zones show enhanced styling.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* GitHub */}
-        <Card className="border-brand-200 bg-brand-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Github className="h-5 w-5" />
-              Open Source on GitHub
-            </CardTitle>
-            <CardDescription>Contribute, report issues, or fork the project</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-grey-600 mb-4">
-              This library is open source and actively maintained. We welcome contributions, bug reports, and feature suggestions.
-            </p>
-            <Button
-              asChild
-              variant="default"
-              className="gap-2"
-            >
-              <a
-                href="https://github.com/yourusername/gantt-timeline"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Github className="h-4 w-4" />
-                View on GitHub
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
+        {/* CTA */}
+        <section className="py-12 text-center">
+          <h2 className="text-2xl font-bold mb-4">Ready to build?</h2>
+          <div className="flex gap-3 justify-center flex-wrap">
+            <Link href="/playground">
+              <Button size="lg">Try Interactive Demo</Button>
+            </Link>
+            <Link href="/">
+              <Button size="lg" variant="outline">Back to Home</Button>
+            </Link>
+          </div>
+        </section>
       </div>
     </div>
   );

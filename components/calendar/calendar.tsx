@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DayView } from './day-view';
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
 import { ResourceSchedule } from './resource-schedule';
+import { TechnicianSchedule } from './technician-schedule';
 import { TimelineView } from './timeline-view';
 import { MiniCalendar } from './mini-calendar';
 import { useCalendarContext } from '@/lib/calendar/calendar-context';
@@ -16,8 +17,16 @@ export function Calendar() {
   const { selectedDate, selectDate, viewMode, setViewMode, dragEnabled, setDragEnabled } =
     useCalendarContext();
   const [showMiniCalendar, setShowMiniCalendar] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
-  const views = ['day', 'week', 'month', 'timeline', 'resource-schedule'] as const;
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const views = ['day', 'week', 'month', 'timeline', 'resource-schedule', 'technician'] as const;
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -27,16 +36,16 @@ export function Calendar() {
           <div className="p-4 border-b border-border sticky top-0 bg-background">
             <h2 className="font-bold text-lg mb-2">Calendar</h2>
             <div className="space-y-2">
-              <div className="grid grid-cols-3 gap-1">
+              <div className="grid grid-cols-2 gap-1">
                 {views.map(view => (
                   <Button
                     key={view}
                     variant={viewMode === view ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setViewMode(view)}
+                    onClick={() => setViewMode(view as any)}
                     className="text-xs capitalize"
                   >
-                    {view === 'resource-schedule' ? 'Resource' : view}
+                    {view === 'resource-schedule' ? 'Resource' : view === 'technician' ? 'Tech' : view}
                   </Button>
                 ))}
               </div>
@@ -68,13 +77,19 @@ export function Calendar() {
           >
             ☰
           </button>
-          <h1 className="text-xl font-bold">
-            {viewMode === 'day' && format(selectedDate, 'EEEE, MMMM d, yyyy')}
-            {viewMode === 'week' && format(selectedDate, 'MMMM yyyy')}
-            {viewMode === 'month' && format(selectedDate, 'MMMM yyyy')}
-            {viewMode === 'timeline' && 'Timeline View'}
-            {viewMode === 'resource-schedule' && 'Resource Schedule'}
-          </h1>
+          <div className="flex-1 text-center">
+            <h1 className="text-xl font-bold">
+              {viewMode === 'day' && format(selectedDate, 'EEEE, MMMM d, yyyy')}
+              {viewMode === 'week' && format(selectedDate, 'MMMM yyyy')}
+              {viewMode === 'month' && format(selectedDate, 'MMMM yyyy')}
+              {viewMode === 'timeline' && 'Timeline View'}
+              {viewMode === 'resource-schedule' && 'Resource Schedule'}
+              {viewMode === 'technician' && 'Technician Schedule'}
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1">
+              {format(currentTime, 'HH:mm:ss')}
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -123,6 +138,14 @@ export function Calendar() {
 
           {viewMode === 'timeline' && (
             <TimelineView
+              date={selectedDate}
+              startHour={6}
+              endHour={22}
+            />
+          )}
+
+          {viewMode === 'technician' && (
+            <TechnicianSchedule
               date={selectedDate}
               startHour={6}
               endHour={22}

@@ -1,7 +1,7 @@
 // Event Types
 export type EventType = 'task' | 'meeting' | 'appointment' | 'deadline' | 'job' | 'break' | 'maintenance' | 'resource-allocation';
 export type EventStatus = 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'scheduled';
-export type ViewMode = 'day' | 'week' | 'month' | 'timeline' | 'resource-schedule';
+export type ViewMode = 'day' | 'week' | 'month' | 'timeline' | 'resource-schedule' | 'technician';
 export type ThemeMode = 'light' | 'dark';
 
 export interface Resource {

@@ -45,8 +45,11 @@ export function DayView({
 }: DayViewProps) {
   const { events, deleteEvent, updateEvent } = useCalendarContext();
   const [draggingEvent, setDraggingEvent] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState(0);
+  const [dragStart, setDragStart] = useState({ y: 0, eventId: '' });
+  const [resizingEvent, setResizingEvent] = useState<string | null>(null);
+  const [resizeStart, setResizeStart] = useState(0);
   const [selectionStart, setSelectionStart] = useState<Date | null>(null);
+  const [dragOffset, setDragOffset] = useState<number>(0);
 
   const dayEvents = events.filter(e => isSameDay(e.startTime, date));
   const hours = eachHourOfInterval({

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import {
   format,
   startOfWeek,
@@ -22,7 +22,6 @@ interface WeekViewProps {
   startHour?: number;
   endHour?: number;
   slotDuration?: number;
-  showResources?: boolean;
 }
 
 const EVENT_COLORS: Record<string, string> = {
@@ -41,10 +40,12 @@ export function WeekView({
   startHour = 6,
   endHour = 22,
   slotDuration = 60,
-  showResources = false,
 }: WeekViewProps) {
-  const { events, resources, deleteEvent, updateEvent } = useCalendarContext();
-  const [displayWeekStart] = useState(startOfWeek(date));
+  const { events, deleteEvent, updateEvent } = useCalendarContext();
+  const [draggingEvent, setDraggingEvent] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
+
+  const displayWeekStart = startOfWeek(date);
   const weekEnd = endOfWeek(displayWeekStart);
   const days = eachDayOfInterval({ start: displayWeekStart, end: weekEnd });
   const hours = eachHourOfInterval({
@@ -53,7 +54,7 @@ export function WeekView({
   });
 
   const getDayEvents = (day: Date) => {
-    return events.filter(e => isSameDay(e.startTime, day));
+    return events.filter(e => isSameDay(e.startTime, day) && !e.allDay);
   };
 
   const getEventPosition = (event: CalendarEvent) => {
@@ -68,26 +69,37 @@ export function WeekView({
     return { top: `${top}px`, height: `${Math.max(height, 40)}px` };
   };
 
-  const handleEventDragEnd = (eventId: string, delta: number) => {
+  const handleEventMouseDown = (e: React.MouseEvent, eventId: string) => {
+    setDraggingEvent(eventId);
+    setDragOffset(e.clientY);
+  };
+
+  const handleEventMouseUp = (e: React.MouseEvent, eventId: string, dayIndex: number) => {
+    if (!draggingEvent) return;
+
+    const delta = e.clientY - dragOffset;
+    const minutesDelta = Math.round((delta / 60) * slotDuration);
+
     const event = events.find(ev => ev.id === eventId);
     if (event) {
-      const minutesDelta = Math.round((delta / 60) * slotDuration);
       updateEvent(eventId, {
         startTime: addMinutes(event.startTime, minutesDelta),
         endTime: addMinutes(event.endTime, minutesDelta),
       });
     }
+
+    setDraggingEvent(null);
   };
 
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header with navigation */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3 sticky top-0 z-20 bg-background">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <span className="font-semibold">
+          <span className="font-semibold min-w-48">
             {format(displayWeekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
           </span>
           <Button variant="outline" size="sm">
@@ -98,70 +110,96 @@ export function WeekView({
 
       {/* Week Grid */}
       <div className="flex-1 overflow-auto">
-        {/* Day Headers */}
-        <div className="grid gap-0" style={{ gridTemplateColumns: `60px repeat(${days.length}, 1fr)` }}>
-          <div className="bg-muted/50 border-b border-border p-2"></div>
-          {days.map(day => (
-            <div
-              key={day.toISOString()}
-              className="bg-muted/50 border-b border-r border-border p-2 text-center"
-            >
-              <p className="text-xs font-semibold text-muted-foreground">
-                {format(day, 'EEE')}
-              </p>
-              <p className={cn('text-lg font-bold', isSameDay(day, new Date()) && 'text-primary')}>
-                {format(day, 'd')}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Time Slots */}
-        {hours.map((hour, hourIdx) => (
-          <div
-            key={hourIdx}
-            className="grid gap-0 border-b border-border min-h-20"
-            style={{ gridTemplateColumns: `60px repeat(${days.length}, 1fr)` }}
-          >
-            {/* Hour Label */}
-            <div className="bg-muted/30 border-r border-border p-2 text-xs text-muted-foreground font-semibold flex items-start pt-1">
-              {format(hour, 'HH:00')}
-            </div>
-
-            {/* Day Columns */}
-            {days.map(day => {
-              const dayEvents = getDayEvents(day).filter(
-                e => !e.allDay && e.startTime.getHours() === hour.getHours()
-              );
-
-              return (
-                <div
-                  key={`${day.toISOString()}-${hourIdx}`}
-                  className="border-r border-border p-1 relative hover:bg-muted/30 transition-colors"
-                >
-                  {dayEvents.map(event => {
-                    const { top, height } = getEventPosition(event);
-                    return (
-                      <div
-                        key={event.id}
-                        className={cn(
-                          'absolute left-1 right-1 p-1 rounded border-l-4 text-[10px] cursor-move transition-all',
-                          EVENT_COLORS[event.type] || EVENT_COLORS.meeting
-                        )}
-                        style={{ top, height }}
-                      >
-                        <p className="font-semibold truncate">{event.title}</p>
-                        <p className="opacity-75">
-                          {format(event.startTime, 'HH:mm')} - {format(event.endTime, 'HH:mm')}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+        <div className="flex">
+          {/* Time Column */}
+          <div className="w-16 flex-shrink-0 bg-muted/30 border-r border-border">
+            {/* Header spacer */}
+            <div className="h-12 border-b border-border"></div>
+            
+            {/* Time labels */}
+            {hours.map((hour, idx) => (
+              <div
+                key={idx}
+                className="h-20 border-b border-border p-1 text-xs text-muted-foreground font-semibold flex items-start"
+              >
+                {format(hour, 'HH:00')}
+              </div>
+            ))}
           </div>
-        ))}
+
+          {/* Days Grid */}
+          <div className="flex-1 overflow-x-auto">
+            {/* Day Headers */}
+            <div className="flex sticky top-0 z-10 bg-background border-b border-border">
+              {days.map(day => (
+                <div
+                  key={day.toISOString()}
+                  className="flex-1 min-w-32 border-r border-border p-2 text-center bg-muted/50"
+                >
+                  <p className="text-xs font-semibold text-muted-foreground">
+                    {format(day, 'EEE')}
+                  </p>
+                  <p className={cn('text-lg font-bold', isSameDay(day, new Date()) && 'text-primary')}>
+                    {format(day, 'd')}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Time Slots Grid */}
+            {hours.map((hour, hourIdx) => (
+              <div key={hourIdx} className="flex border-b border-border h-20">
+                {days.map((day, dayIdx) => {
+                  const dayEvents = getDayEvents(day).filter(
+                    e => e.startTime.getHours() === hour.getHours()
+                  );
+
+                  return (
+                    <div
+                      key={`${day.toISOString()}-${hourIdx}`}
+                      className="flex-1 min-w-32 border-r border-border p-1 relative hover:bg-muted/30 transition-colors"
+                    >
+                      {dayEvents.map(event => {
+                        const { top, height } = getEventPosition(event);
+                        return (
+                          <div
+                            key={event.id}
+                            className={cn(
+                              'absolute left-1 right-1 p-1 rounded border-l-4 text-[10px] cursor-move transition-all select-none group',
+                              EVENT_COLORS[event.type] || EVENT_COLORS.meeting,
+                              draggingEvent === event.id && 'opacity-60 z-40'
+                            )}
+                            style={{ top, height }}
+                            onMouseDown={e => handleEventMouseDown(e, event.id)}
+                            onMouseUp={e => handleEventMouseUp(e, event.id, dayIdx)}
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold truncate">{event.title}</p>
+                                <p className="opacity-75">
+                                  {format(event.startTime, 'HH:mm')}
+                                </p>
+                              </div>
+                              <button
+                                onClick={e => {
+                                  e.stopPropagation();
+                                  deleteEvent(event.id);
+                                }}
+                                className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

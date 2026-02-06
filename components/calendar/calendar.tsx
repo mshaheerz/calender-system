@@ -5,6 +5,7 @@ import { DayView } from './day-view';
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
 import { ResourceSchedule } from './resource-schedule';
+import { TimelineView } from './timeline-view';
 import { MiniCalendar } from './mini-calendar';
 import { useCalendarContext } from '@/lib/calendar/calendar-context';
 import { format } from 'date-fns';
@@ -121,9 +122,11 @@ export function Calendar() {
           )}
 
           {viewMode === 'timeline' && (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground text-lg">Timeline view coming soon</p>
-            </div>
+            <TimelineView
+              date={selectedDate}
+              startHour={6}
+              endHour={22}
+            />
           )}
         </div>
       </div>

@@ -1,14 +1,15 @@
 import { CalendarEvent, Resource } from './types';
-import { addHours, addDays, addMinutes } from 'date-fns';
+import { addHours, addDays, addMinutes, startOfDay, subDays } from 'date-fns';
 
 const now = new Date();
+const today = startOfDay(now);
 
 export const mockResources: Resource[] = [
   {
     id: 'tech-1',
     name: 'John Smith',
     type: 'technician',
-    color: '#3B82F6',
+    color: '#3B82F6', // Blue
     availability: {
       startTime: '08:00',
       endTime: '17:00',
@@ -19,7 +20,7 @@ export const mockResources: Resource[] = [
     id: 'tech-2',
     name: 'Sarah Johnson',
     type: 'technician',
-    color: '#8B5CF6',
+    color: '#8B5CF6', // Purple
     availability: {
       startTime: '09:00',
       endTime: '18:00',
@@ -30,7 +31,7 @@ export const mockResources: Resource[] = [
     id: 'tech-3',
     name: 'Mike Chen',
     type: 'technician',
-    color: '#EC4899',
+    color: '#EC4899', // Pink
     availability: {
       startTime: '07:00',
       endTime: '16:00',
@@ -41,189 +42,115 @@ export const mockResources: Resource[] = [
     id: 'room-1',
     name: 'Conference Room A',
     type: 'room',
-    color: '#F59E0B',
+    color: '#F59E0B', // Amber
   },
   {
     id: 'room-2',
     name: 'Conference Room B',
     type: 'room',
-    color: '#10B981',
+    color: '#10B981', // Emerald
   },
   {
     id: 'eq-1',
-    name: 'Projector',
+    name: 'High-Speed Scanner',
     type: 'equipment',
-    color: '#06B6D4',
+    color: '#06B6D4', // Cyan
   },
+  {
+    id: 'eq-2',
+    name: 'Heavy Duty Drill',
+    type: 'equipment',
+    color: '#F43F5E', // Rose
+  }
 ];
 
+// Helper to create events relative to today
+const createEvent = (
+  id: string,
+  title: string,
+  daysFromToday: number,
+  hour: number,
+  minute: number,
+  durationMinutes: number,
+  type: CalendarEvent['type'],
+  resourceId?: string,
+  resourceIds?: string[],
+  allDay: boolean = false
+): CalendarEvent => {
+  const startTime = addMinutes(addHours(addDays(today, daysFromToday), hour), minute);
+  const endTime = addMinutes(startTime, durationMinutes);
+  return {
+    id,
+    title,
+    type,
+    status: 'scheduled',
+    startTime,
+    endTime,
+    resourceId,
+    resourceIds,
+    allDay,
+    priority: Math.random() > 0.5 ? 'high' : 'medium',
+  };
+};
+
 export const mockEvents: CalendarEvent[] = [
-  // Today's events
+  // Past events (yesterday)
+  createEvent('p1', 'Site Audit', -1, 9, 0, 120, 'job', 'tech-1'),
+  createEvent('p2', 'Team Debrief', -1, 14, 0, 60, 'meeting', 'tech-2'),
+
+  // Today
+  createEvent('t1', 'Morning Standup', 0, 8, 30, 30, 'meeting', undefined, ['tech-1', 'tech-2', 'tech-3']),
+  createEvent('t2', 'Client Architecture Call', 0, 10, 0, 90, 'meeting', 'tech-1'),
+  createEvent('t3', 'Server Migration', 0, 13, 0, 180, 'maintenance', 'tech-2'),
+  createEvent('t4', 'Quick Sync', 0, 11, 30, 30, 'meeting', 'tech-3'),
+  createEvent('t5', 'Equipment Prep', 0, 16, 0, 60, 'task', 'tech-3'),
   {
-    id: 'event-1',
-    title: 'Team Standup',
-    description: 'Daily team synchronization',
-    type: 'meeting',
-    status: 'scheduled',
-    startTime: addHours(now, 1),
-    endTime: addMinutes(addHours(now, 1), 30),
-    resourceIds: ['tech-1', 'tech-2', 'tech-3'],
-    location: 'Conference Room A',
-    priority: 'high',
-  },
-  {
-    id: 'event-2',
-    title: 'Client Call',
-    description: 'Quarterly business review',
-    type: 'meeting',
-    status: 'scheduled',
-    startTime: addHours(now, 3),
-    endTime: addHours(now, 4),
-    resourceId: 'tech-1',
-    location: 'Zoom',
-    priority: 'high',
-  },
-  {
-    id: 'event-3',
-    title: 'Project Deadline',
-    description: 'Q1 deliverables submission',
-    type: 'deadline',
-    status: 'in-progress',
-    startTime: addDays(now, 2),
-    endTime: addDays(now, 2),
-    priority: 'high',
-    allDay: true,
-  },
-  {
-    id: 'event-4',
-    title: 'System Maintenance',
-    description: 'Server updates and patches',
-    type: 'maintenance',
-    status: 'scheduled',
-    startTime: addHours(now, 5),
-    endTime: addHours(now, 7),
-    resourceIds: ['tech-2', 'tech-3'],
-    priority: 'medium',
-  },
-  {
-    id: 'event-5',
-    title: 'Lunch Break',
-    description: 'Team lunch',
+    id: 't6',
+    title: 'Public Holiday',
     type: 'break',
     status: 'scheduled',
-    startTime: addHours(now, 4),
-    endTime: addHours(now, 5),
-    resourceIds: ['tech-1', 'tech-2'],
+    startTime: today,
+    endTime: today,
+    allDay: true,
   },
 
   // Tomorrow
+  createEvent('tom1', 'Requirement Gathering', 1, 9, 30, 120, 'appointment', 'tech-2'),
+  createEvent('tom2', 'Database Patching', 1, 13, 0, 60, 'maintenance', 'tech-3'),
+  createEvent('tom3', 'User Testing', 1, 15, 0, 120, 'job', 'tech-1'),
+
+  // Later this week
+  createEvent('w1', 'Design Review', 2, 11, 0, 60, 'meeting', 'tech-1'),
+  createEvent('w2', 'Security Audit', 2, 14, 0, 120, 'task', 'tech-2'),
+  createEvent('w3', 'Weekly Wrap-up', 4, 16, 0, 60, 'meeting', undefined, ['tech-1', 'tech-2', 'tech-3']),
+
+  // Multi-day & All day
   {
-    id: 'event-6',
-    title: 'New Feature Review',
-    description: 'Review Q2 feature requests',
+    id: 'm1',
+    title: 'Offsite Workshop',
     type: 'meeting',
     status: 'scheduled',
-    startTime: addHours(addDays(now, 1), 10),
-    endTime: addHours(addDays(now, 1), 11),
-    resourceIds: ['tech-1', 'tech-3'],
-    priority: 'high',
+    startTime: addDays(today, 3),
+    endTime: addDays(today, 4),
+    allDay: true,
   },
   {
-    id: 'event-7',
-    title: 'Database Optimization Task',
-    description: 'Optimize slow queries',
-    type: 'task',
-    status: 'in-progress',
-    startTime: addHours(addDays(now, 1), 14),
-    endTime: addHours(addDays(now, 1), 16),
+    id: 'm2',
+    title: 'Tech Conference',
+    type: 'resource-allocation',
+    status: 'scheduled',
+    startTime: addDays(today, 7),
+    endTime: addDays(today, 9),
+    allDay: true,
     resourceId: 'tech-2',
-    priority: 'medium',
-  },
-
-  // This week
-  {
-    id: 'event-8',
-    title: 'Resource Planning',
-    description: 'Plan resource allocation for next quarter',
-    type: 'meeting',
-    status: 'scheduled',
-    startTime: addHours(addDays(now, 3), 9),
-    endTime: addHours(addDays(now, 3), 11),
-    resourceIds: ['tech-1', 'tech-2', 'tech-3'],
-    priority: 'high',
-  },
-  {
-    id: 'event-9',
-    title: 'Equipment Setup',
-    description: 'Install new monitoring equipment',
-    type: 'job',
-    status: 'pending',
-    startTime: addHours(addDays(now, 2), 8),
-    endTime: addHours(addDays(now, 2), 10),
-    resourceIds: ['tech-1'],
-    priority: 'medium',
-  },
-  {
-    id: 'event-10',
-    title: 'Staff Training',
-    description: 'New tool training session',
-    type: 'appointment',
-    status: 'scheduled',
-    startTime: addHours(addDays(now, 4), 14),
-    endTime: addHours(addDays(now, 4), 15),
-    resourceIds: ['tech-2', 'tech-3'],
-    priority: 'medium',
-  },
-
-  // Next week
-  {
-    id: 'event-11',
-    title: 'Client Presentation',
-    description: 'Present Q1 results to stakeholders',
-    type: 'meeting',
-    status: 'scheduled',
-    startTime: addHours(addDays(now, 7), 10),
-    endTime: addHours(addDays(now, 7), 11),
-    resourceId: 'tech-1',
-    location: 'Conference Room A',
-    priority: 'high',
-  },
-  {
-    id: 'event-12',
-    title: 'Vendor Meeting',
-    description: 'Discuss support contracts',
-    type: 'meeting',
-    status: 'scheduled',
-    startTime: addHours(addDays(now, 8), 14),
-    endTime: addHours(addDays(now, 8), 15),
-    resourceId: 'tech-3',
-    priority: 'medium',
   },
 
   // Resource allocations
-  {
-    id: 'event-13',
-    title: 'Tech-1 Reserved',
-    description: 'Reserved for project X',
-    type: 'resource-allocation',
-    status: 'scheduled',
-    startTime: addDays(now, 5),
-    endTime: addDays(now, 6),
-    resourceId: 'tech-1',
-    allDay: true,
-  },
-  {
-    id: 'event-14',
-    title: 'Conference Room B - Booked',
-    description: 'Full day booking',
-    type: 'resource-allocation',
-    status: 'scheduled',
-    startTime: addDays(now, 6),
-    endTime: addDays(now, 6),
-    resourceId: 'room-2',
-    allDay: true,
-  },
+  createEvent('r1', 'Room A Booked', 0, 9, 0, 480, 'resource-allocation', 'room-1'),
+  createEvent('r2', 'Scanner Reserved', 1, 10, 0, 240, 'resource-allocation', 'eq-1'),
+  createEvent('r3', 'Drill in Use', 0, 14, 0, 120, 'resource-allocation', 'eq-2'),
 ];
+
 
 export const mockEventsByType = {
   meetings: mockEvents.filter(e => e.type === 'meeting'),

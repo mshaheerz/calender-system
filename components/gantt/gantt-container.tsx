@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   format,
   addHours,
@@ -17,20 +23,23 @@ import {
   addMinutes,
   setMinutes,
   setSeconds,
-} from 'date-fns';
-import { useGanttContext } from '@/lib/gantt/gantt-context';
-import { GanttTechnicianRow } from './gantt-technician-row';
-import { GanttMonthCalendar } from './gantt-month-calendar';
-import {
-  monitorForElements,
-} from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import {
-  autoScrollForElements,
-} from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element';
-import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
-import invariant from 'tiny-invariant';
-import { cn } from '@/lib/utils';
-import type { Job, ViewMode, DragPreviewData, JobMoveConfig } from '@/lib/gantt/types';
+} from "date-fns";
+import { useGanttContext } from "@/lib/gantt/gantt-context";
+import { GanttTechnicianRow } from "./gantt-technician-row";
+import { GanttMonthCalendar } from "./gantt-month-calendar";
+import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
+import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
+import invariant from "tiny-invariant";
+import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import type {
+  Job,
+  ViewMode,
+  DragPreviewData,
+  JobMoveConfig,
+} from "@/lib/gantt/types";
 
 export interface GanttContainerProps {
   technicians: Array<{ id: string; name: string; image?: string | null }>;
@@ -38,7 +47,12 @@ export interface GanttContainerProps {
   viewMode: ViewMode;
   currentDate: Date;
   onJobMove?: (config: JobMoveConfig) => void;
-  onJobCreate?: (jobId: string, technicianId: string, startTime: Date, endTime: Date) => void;
+  onJobCreate?: (
+    jobId: string,
+    technicianId: string,
+    startTime: Date,
+    endTime: Date,
+  ) => void;
   onJobResize?: (jobId: string, newStartTime?: Date, newEndTime?: Date) => void;
 }
 
@@ -51,21 +65,24 @@ export function GanttContainer({
   onJobCreate,
   onJobResize,
 }: GanttContainerProps) {
-  const [dragOverData, setDragOverData] = useState<DragPreviewData | null>(null);
+  const [dragOverData, setDragOverData] = useState<DragPreviewData | null>(
+    null,
+  );
   const timelineScrollRef = useRef<HTMLDivElement>(null);
-  const { instanceId, setIsDragging } = useGanttContext();
+  const { instanceId, setIsDragging, isDragEnabled, setIsDragEnabled } =
+    useGanttContext();
 
   // Generate time slots based on view mode
   const timeSlots = useMemo(() => {
-    if (viewMode === 'day') {
+    if (viewMode === "day") {
       const start = startOfDay(currentDate);
       const end = endOfDay(currentDate);
       return eachHourOfInterval({ start, end });
-    } else if (viewMode === 'week') {
+    } else if (viewMode === "week") {
       const start = startOfWeek(currentDate);
       const end = endOfWeek(currentDate);
       return eachDayOfInterval({ start, end });
-    } else if (viewMode === 'month') {
+    } else if (viewMode === "month") {
       const start = startOfMonth(currentDate);
       const end = endOfMonth(currentDate);
       return eachWeekOfInterval({ start, end });
@@ -74,28 +91,28 @@ export function GanttContainer({
   }, [viewMode, currentDate]);
 
   const getTimeSlotLabel = (slot: Date): string => {
-    if (viewMode === 'day') {
-      return format(slot, 'h a');
-    } else if (viewMode === 'week') {
-      return format(slot, 'EEE d');
-    } else if (viewMode === 'month') {
-      return format(slot, 'MMM d');
+    if (viewMode === "day") {
+      return format(slot, "h a");
+    } else if (viewMode === "week") {
+      return format(slot, "EEE d");
+    } else if (viewMode === "month") {
+      return format(slot, "MMM d");
     }
-    return '';
+    return "";
   };
 
   const getJobsForTechnician = useCallback(
     (technicianId: string) => {
       return jobs.filter((job) => job.technicianId === technicianId);
     },
-    [jobs]
+    [jobs],
   );
 
   const handleJobMove = useCallback(
     ({ jobId, toTechnicianId, newStartTime }: JobMoveConfig) => {
       onJobMove?.({ jobId, toTechnicianId, newStartTime });
     },
-    [onJobMove]
+    [onJobMove],
   );
 
   const calculatePreciseTime = useCallback(
@@ -119,22 +136,22 @@ export function GanttContainer({
       const offsetX = location.current.input.clientX - rect.left - grabOffset;
       const percentage = Math.max(0, Math.min(1, offsetX / rect.width));
 
-      if (viewMode === 'day') {
+      if (viewMode === "day") {
         if (timeSlotTarget) {
           const minutes = Math.floor(percentage * 60);
           finalStartTime = setMinutes(
             setSeconds(new Date(baseTime), 0),
-            minutes
+            minutes,
           );
         } else {
           const totalMinutes = timeSlots.length * 60;
           const minutesToAdd = Math.floor(percentage * totalMinutes);
           finalStartTime = addMinutes(
             startOfDay(new Date(baseTime)),
-            minutesToAdd
+            minutesToAdd,
           );
         }
-      } else if (viewMode === 'week') {
+      } else if (viewMode === "week") {
         const minutesInCell = 24 * 60;
         const totalMinutes = timeSlotTarget
           ? minutesInCell
@@ -142,9 +159,9 @@ export function GanttContainer({
         const minutesToAdd = Math.floor(percentage * totalMinutes);
         finalStartTime = addMinutes(
           startOfDay(new Date(baseTime)),
-          minutesToAdd
+          minutesToAdd,
         );
-      } else if (viewMode === 'month') {
+      } else if (viewMode === "month") {
         const minutesInCell = 7 * 24 * 60;
         const totalMinutes = timeSlotTarget
           ? minutesInCell
@@ -152,12 +169,12 @@ export function GanttContainer({
         const minutesToAdd = Math.floor(percentage * totalMinutes);
         finalStartTime = addMinutes(
           startOfDay(new Date(baseTime)),
-          minutesToAdd
+          minutesToAdd,
         );
       }
       return finalStartTime;
     },
-    [viewMode, timeSlots]
+    [viewMode, timeSlots],
   );
 
   // Setup auto-scroll
@@ -175,7 +192,7 @@ export function GanttContainer({
     return combine(
       monitorForElements({
         canMonitor({ source }) {
-          return source.data.instanceId === instanceId;
+          return isDragEnabled && source.data.instanceId === instanceId;
         },
         onDragStart() {
           setIsDragging(true);
@@ -183,18 +200,18 @@ export function GanttContainer({
         onDrag(args) {
           const { location, source } = args;
           const isJobAction =
-            source.data.type === 'job-card' ||
-            source.data.type === 'table-job' ||
-            source.data.type === 'job-resize' ||
-            source.data.type === 'job-resize-start' ||
-            source.data.type === 'job-resize-end';
+            source.data.type === "job-card" ||
+            source.data.type === "table-job" ||
+            source.data.type === "job-resize" ||
+            source.data.type === "job-resize-start" ||
+            source.data.type === "job-resize-end";
 
           if (isJobAction && location.current.dropTargets.length) {
             const gridTarget = location.current.dropTargets.find(
-              (target: any) => target.data.isGrid === true
+              (target: any) => (target.data as any).isGrid === true,
             );
             const timeSlotTarget = location.current.dropTargets.find(
-              (target: any) => target.data.timeSlot !== undefined
+              (target: any) => (target.data as any).timeSlot !== undefined,
             );
 
             const dropTarget = gridTarget || timeSlotTarget;
@@ -215,24 +232,26 @@ export function GanttContainer({
               let startTime = finalStartTime;
               let duration = 2 * 60 * 60 * 1000; // Default 2h
 
+              const sourceData = source.data as any;
+
               if (
-                source.data.type === 'job-card' ||
-                source.data.type === 'job-resize' ||
-                source.data.type === 'job-resize-start' ||
-                source.data.type === 'job-resize-end'
+                sourceData.type === "job-card" ||
+                sourceData.type === "job-resize" ||
+                sourceData.type === "job-resize-start" ||
+                sourceData.type === "job-resize-end"
               ) {
-                const job = jobs.find((j) => j.id === source.data.jobId);
+                const job = jobs.find((j) => j.id === sourceData.jobId);
                 if (job) {
                   if (
-                    source.data.type === 'job-resize' ||
-                    source.data.type === 'job-resize-end'
+                    sourceData.type === "job-resize" ||
+                    sourceData.type === "job-resize-end"
                   ) {
                     startTime = job.startTime;
                     duration = Math.max(
                       15 * 60 * 1000,
-                      finalStartTime.getTime() - job.startTime.getTime()
+                      finalStartTime.getTime() - job.startTime.getTime(),
                     );
-                  } else if (source.data.type === 'job-resize-start') {
+                  } else if (sourceData.type === "job-resize-start") {
                     const newDuration =
                       job.endTime.getTime() - finalStartTime.getTime();
                     if (newDuration >= 15 * 60 * 1000) {
@@ -240,19 +259,19 @@ export function GanttContainer({
                       duration = newDuration;
                     }
                   } else {
-                    duration =
-                      job.endTime.getTime() - job.startTime.getTime();
+                    duration = job.endTime.getTime() - job.startTime.getTime();
                   }
                 }
               }
 
               setDragOverData({
-                technicianId: dropTarget.data.technicianId,
+                technicianId: (dropTarget.data as any).technicianId,
                 startTime,
                 duration,
-                type: source.data.type,
-                jobId: source.data.jobId,
-                job: source.data.job || jobs.find((j) => j.id === source.data.jobId),
+                type: sourceData.type,
+                jobId: sourceData.jobId,
+                job:
+                  sourceData.job || jobs.find((j) => j.id === sourceData.jobId),
               });
             } else {
               setDragOverData(null);
@@ -270,24 +289,25 @@ export function GanttContainer({
             return;
           }
 
+          const sourceData = source.data as any;
           const isJobAction =
-            source.data.type === 'job-card' ||
-            source.data.type === 'table-job' ||
-            source.data.type === 'job-resize' ||
-            source.data.type === 'job-resize-start' ||
-            source.data.type === 'job-resize-end';
+            sourceData.type === "job-card" ||
+            sourceData.type === "table-job" ||
+            sourceData.type === "job-resize" ||
+            sourceData.type === "job-resize-start" ||
+            sourceData.type === "job-resize-end";
 
           if (isJobAction) {
             const timeSlotTarget = location.current.dropTargets.find(
-              (target: any) => target.data.timeSlot !== undefined
+              (target: any) => (target.data as any).timeSlot !== undefined,
             );
             const gridTarget = location.current.dropTargets.find(
-              (target: any) => target.data.isGrid === true
+              (target: any) => (target.data as any).isGrid === true,
             );
 
             const dropTarget =
               gridTarget || timeSlotTarget || location.current.dropTargets[0];
-            const toTechnicianId = dropTarget.data.technicianId;
+            const toTechnicianId = (dropTarget.data as any).technicianId;
 
             const calculationTarget = gridTarget || dropTarget;
             const calculationTimeSlotTarget = gridTarget
@@ -301,52 +321,62 @@ export function GanttContainer({
               source,
             });
 
-            invariant(typeof toTechnicianId === 'string');
+            invariant(typeof toTechnicianId === "string");
 
-            if (source.data.type === 'table-job') {
-              const tableJob = source.data.job;
+            if (sourceData.type === "table-job") {
+              const tableJob = sourceData.job;
               onJobCreate?.(
                 tableJob.id,
                 toTechnicianId,
                 finalStartTime,
-                addHours(finalStartTime, 2)
+                addHours(finalStartTime, 2),
               );
-            } else if (source.data.type === 'job-card') {
-              const jobId = source.data.jobId;
-              invariant(typeof jobId === 'string');
+            } else if (sourceData.type === "job-card") {
+              const jobId = sourceData.jobId;
+              invariant(typeof jobId === "string");
               handleJobMove({
                 jobId,
                 toTechnicianId,
                 newStartTime: finalStartTime,
               });
             } else if (
-              source.data.type === 'job-resize' ||
-              source.data.type === 'job-resize-end'
+              sourceData.type === "job-resize" ||
+              sourceData.type === "job-resize-end"
             ) {
-              const jobId = source.data.jobId;
-              invariant(typeof jobId === 'string');
+              const jobId = sourceData.jobId;
+              invariant(typeof jobId === "string");
               onJobResize?.(
                 jobId,
                 undefined,
-                finalStartTime > (jobs.find((j) => j.id === jobId)?.startTime || new Date())
+                finalStartTime >
+                  (jobs.find((j) => j.id === jobId)?.startTime || new Date())
                   ? finalStartTime
-                  : undefined
+                  : undefined,
               );
-            } else if (source.data.type === 'job-resize-start') {
-              const jobId = source.data.jobId;
-              invariant(typeof jobId === 'string');
+            } else if (sourceData.type === "job-resize-start") {
+              const jobId = sourceData.jobId;
+              invariant(typeof jobId === "string");
               onJobResize?.(jobId, finalStartTime, undefined);
             }
           }
         },
-      })
+      }),
     );
-  }, [instanceId, handleJobMove, calculatePreciseTime, jobs, onJobCreate, onJobResize]);
+  }, [
+    instanceId,
+    handleJobMove,
+    calculatePreciseTime,
+    jobs,
+    onJobCreate,
+    onJobResize,
+    isDragEnabled,
+    setIsDragging,
+  ]);
 
   return (
-    <Card className="border-b-0 border-x-0 border-t shadow-sm rounded-none overflow-hidden">
+    <Card className="border-b-0 border-x-0 border-t shadow-lg rounded-none overflow-hidden bg-background">
       <CardContent className="p-0 border-none shadow-none">
-        {viewMode === 'month' ? (
+        {viewMode === "month" ? (
           <GanttMonthCalendar
             technicians={technicians}
             jobs={jobs}
@@ -357,25 +387,52 @@ export function GanttContainer({
           <div
             ref={timelineScrollRef}
             className="overflow-x-auto overflow-y-auto custom-scrollbar"
-            style={{ maxHeight: '50vh' }}
+            style={{ maxHeight: "50vh" }}
           >
-            {/* Time Header */}
-            <div className="flex border-b sticky top-0 bg-white z-20 min-w-max">
-              <div className="w-48 flex-shrink-0 border-r p-3 font-semibold bg-brand-25">
-                Technician
+            {/* Time Header with Drag Toggle */}
+            <div className="flex border-b sticky top-0 bg-background/95 backdrop-blur-sm z-20 min-w-max">
+              <div className="w-48 flex-shrink-0 border-r p-3 font-semibold bg-muted/30 flex items-center justify-between">
+                <span>Technician</span>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="drag-toggle-container"
+                    checked={isDragEnabled}
+                    onCheckedChange={setIsDragEnabled}
+                    className="data-[state=checked]:bg-emerald-500 scale-75"
+                  />
+                  <Label
+                    htmlFor="drag-toggle-container"
+                    className="text-[9px] font-bold cursor-pointer select-none"
+                    title={isDragEnabled ? "Drag Enabled" : "Drag Disabled"}
+                  >
+                    {isDragEnabled ? "🟢" : "🔴"}
+                  </Label>
+                </div>
               </div>
               <div className="flex flex-1 min-w-max relative">
                 {timeSlots.map((slot, index) => (
                   <div
                     key={index}
                     className={cn(
-                      'flex-1 p-2 text-center text-sm font-medium bg-brand-25',
-                      viewMode === 'week' ? 'min-w-[300px]' : 'min-w-[100px]'
+                      "flex-1 p-2 text-center text-sm font-medium bg-muted/20 border-r",
+                      viewMode === "week" ? "min-w-[300px]" : "min-w-[100px]",
                     )}
                   >
                     {getTimeSlotLabel(slot)}
                   </div>
                 ))}
+                {dragOverData && (
+                  <div
+                    className="absolute top-0 bottom-0 z-30 pointer-events-none transition-all duration-75"
+                    style={{
+                      left: `${((dragOverData.startTime.getTime() - timeSlots[0].getTime()) / (timeSlots[timeSlots.length - 1].getTime() + (viewMode === "day" ? 3600000 : viewMode === "week" ? 86400000 : 604800000) - timeSlots[0].getTime())) * 100}%`,
+                    }}
+                  >
+                    <div className="absolute top-1 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-2 py-0.5 rounded-full text-[9px] font-bold shadow-md whitespace-nowrap">
+                      {format(dragOverData.startTime, "h:mm a")}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

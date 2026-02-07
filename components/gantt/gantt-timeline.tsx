@@ -25,8 +25,9 @@ import { monitorForElements } from "@atlaskit/pragmatic-drag-and-drop/element/ad
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import invariant from "tiny-invariant";
-import { Shell } from "@/components/shell";
 import { cn } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 // Static data for demonstration
 const MOCK_TECHNICIANS = [
@@ -49,6 +50,8 @@ const MOCK_JOBS = [
     startTime: addHours(startOfDay(new Date()), 10),
     endTime: addHours(startOfDay(new Date()), 12),
     status: "scheduled",
+    priority: "medium",
+    cost: 1250,
   },
   {
     id: "job-1-overlap",
@@ -58,6 +61,8 @@ const MOCK_JOBS = [
     startTime: addHours(startOfDay(new Date()), 11),
     endTime: addHours(startOfDay(new Date()), 13),
     status: "scheduled",
+    priority: "high",
+    cost: 2500,
   },
   {
     id: "job-2",
@@ -67,6 +72,8 @@ const MOCK_JOBS = [
     startTime: addHours(startOfDay(new Date()), 11),
     endTime: addHours(startOfDay(new Date()), 13),
     status: "in_progress",
+    priority: "medium",
+    cost: 1800,
   },
   {
     id: "job-3",
@@ -76,16 +83,19 @@ const MOCK_JOBS = [
     startTime: addHours(startOfDay(new Date()), 14),
     endTime: addHours(startOfDay(new Date()), 16),
     status: "scheduled",
+    priority: "low",
+    cost: 950,
   },
-  // Add another overlap for Tech 1 to test row expansion
   {
     id: "job-1-overlap-2",
     technicianId: "1",
     title: "Late Inspection",
     location: "Chennai",
-    startTime: addHours(startOfDay(new Date()), 11, 30),
+    startTime: addMinutes(addHours(startOfDay(new Date()), 11), 30),
     endTime: addHours(startOfDay(new Date()), 14),
     status: "scheduled",
+    priority: "medium",
+    cost: 1100,
   },
 ];
 
@@ -93,13 +103,13 @@ export default function DispatchGanttTimeline({
   viewMode,
   currentDate,
   search,
-}) {
+}: any) {
   const [jobs, setJobs] = useState(MOCK_JOBS);
-  const [dragOverData, setDragOverData] = useState(null);
-  const timelineScrollRef = useRef(null);
+  const [dragOverData, setDragOverData] = useState<any>(null);
+  const timelineScrollRef = useRef<HTMLDivElement>(null);
 
-  // Use context from parent instead of creating new one
-  const { instanceId, setIsDragging } = useGanttContext();
+  const { instanceId, setIsDragging, isDragEnabled, setIsDragEnabled } =
+    useGanttContext();
 
   // Generate time slots based on view mode
   const timeSlots = useMemo(() => {
@@ -119,7 +129,7 @@ export default function DispatchGanttTimeline({
     return [];
   }, [viewMode, currentDate]);
 
-  const getTimeSlotLabel = (slot) => {
+  const getTimeSlotLabel = (slot: Date) => {
     if (viewMode === "day") {
       return format(slot, "h a");
     } else if (viewMode === "week") {
@@ -130,7 +140,6 @@ export default function DispatchGanttTimeline({
     return "";
   };
 
-  // Filter technicians based on search
   const filteredTechnicians = useMemo(() => {
     if (!search) return MOCK_TECHNICIANS;
     return MOCK_TECHNICIANS.filter((tech) =>
@@ -138,17 +147,15 @@ export default function DispatchGanttTimeline({
     );
   }, [search]);
 
-  // Get jobs for a specific technician
   const getJobsForTechnician = useCallback(
-    (technicianId) => {
+    (technicianId: string) => {
       return jobs.filter((job) => job.technicianId === technicianId);
     },
     [jobs],
   );
 
-  // Handle job move
   const handleJobMove = useCallback(
-    ({ jobId, toTechnicianId, newStartTime }) => {
+    ({ jobId, toTechnicianId, newStartTime }: any) => {
       setJobs((prevJobs) => {
         return prevJobs.map((job) => {
           if (job.id === jobId) {
@@ -168,7 +175,7 @@ export default function DispatchGanttTimeline({
   );
 
   const calculatePreciseTime = useCallback(
-    ({ location, dropTarget, timeSlotTarget, source }) => {
+    ({ location, dropTarget, timeSlotTarget, source }: any) => {
       const baseTime =
         dropTarget.data.timeSlot || dropTarget.data.startTime || new Date();
       let finalStartTime = baseTime;
@@ -219,7 +226,6 @@ export default function DispatchGanttTimeline({
     [viewMode, timeSlots],
   );
 
-  // Setup auto-scroll
   useEffect(() => {
     if (!timelineScrollRef.current) return;
 
@@ -229,12 +235,11 @@ export default function DispatchGanttTimeline({
     });
   }, [instanceId]);
 
-  // Monitor drag and drop events
   useEffect(() => {
     return combine(
       monitorForElements({
         canMonitor({ source }) {
-          return source.data.instanceId === instanceId;
+          return isDragEnabled && source.data.instanceId === instanceId;
         },
         onDragStart() {
           setIsDragging(true);
@@ -249,7 +254,6 @@ export default function DispatchGanttTimeline({
             source.data.type === "job-resize-end";
 
           if (isJobAction && location.current.dropTargets.length) {
-            // Find targets
             const gridTarget = location.current.dropTargets.find(
               (target) => target.data.isGrid === true,
             );
@@ -257,11 +261,9 @@ export default function DispatchGanttTimeline({
               (target) => target.data.timeSlot !== undefined,
             );
 
-            // Use gridTarget by preference for calculation, fallback to anything found
             const dropTarget = gridTarget || timeSlotTarget;
 
             if (dropTarget) {
-              // Always use grid calculation if we have a gridTarget, it's more stable
               const calculationTarget = gridTarget || dropTarget;
               const calculationTimeSlotTarget = gridTarget
                 ? null
@@ -275,7 +277,7 @@ export default function DispatchGanttTimeline({
               });
 
               let startTime = finalStartTime;
-              let duration = 2 * 60 * 60 * 1000; // Default 2h
+              let duration = 2 * 60 * 60 * 1000;
 
               if (
                 source.data.type === "job-card" ||
@@ -301,7 +303,6 @@ export default function DispatchGanttTimeline({
                       startTime = finalStartTime;
                       duration = newDuration;
                     } else {
-                      // Prevent resizing past minimum duration
                       startTime = addMinutes(job.endTime, -15);
                       duration = 15 * 60 * 1000;
                     }
@@ -356,7 +357,6 @@ export default function DispatchGanttTimeline({
               gridTarget || timeSlotTarget || location.current.dropTargets[0];
             const toTechnicianId = dropTarget.data.technicianId;
 
-            // Prioritize gridTarget for calculation
             const calculationTarget = gridTarget || dropTarget;
             const calculationTimeSlotTarget = gridTarget
               ? null
@@ -372,22 +372,22 @@ export default function DispatchGanttTimeline({
             invariant(typeof toTechnicianId === "string");
 
             if (source.data.type === "table-job") {
-              // Creating new job from table
-              const tableJob = source.data.job;
+              const tableJob = source.data.job as any;
               const newJob = {
                 id: tableJob.id,
                 technicianId: toTechnicianId,
                 title: tableJob.title,
                 location: tableJob.location,
                 startTime: finalStartTime,
-                endTime: addHours(finalStartTime, 2), // Default 2 hour duration
+                endTime: addHours(finalStartTime, 2),
                 status: "scheduled",
+                priority: "medium",
+                cost: tableJob.cost || 0,
               };
-              setJobs((prevJobs) => [...prevJobs, newJob]);
+              setJobs((prevJobs: any) => [...prevJobs, newJob]);
             } else if (source.data.type === "job-card") {
               const jobId = source.data.jobId;
               invariant(typeof jobId === "string");
-              // Moving existing job
               handleJobMove({
                 jobId,
                 toTechnicianId,
@@ -399,7 +399,6 @@ export default function DispatchGanttTimeline({
             ) {
               const jobId = source.data.jobId;
               invariant(typeof jobId === "string");
-              // Resizing end time
               setJobs((prevJobs) =>
                 prevJobs.map((j) => {
                   if (j.id === jobId) {
@@ -415,7 +414,6 @@ export default function DispatchGanttTimeline({
             } else if (source.data.type === "job-resize-start") {
               const jobId = source.data.jobId;
               invariant(typeof jobId === "string");
-              // Resizing start time
               setJobs((prevJobs) =>
                 prevJobs.map((j) => {
                   if (j.id === jobId) {
@@ -433,15 +431,17 @@ export default function DispatchGanttTimeline({
         },
       }),
     );
-  }, [instanceId, handleJobMove, calculatePreciseTime, jobs]);
+  }, [
+    instanceId,
+    handleJobMove,
+    calculatePreciseTime,
+    jobs,
+    isDragEnabled,
+    setIsDragging,
+  ]);
 
   return (
-    <Card className="border-b-0 border-x-0 border-t shadow-sm rounded-none overflow-hidden">
-      {/* <CardHeader className="pb-2">
-        <h3 className="text-lg font-semibold">
-          Dispatcher / Field Service Schedule
-        </h3>
-      </CardHeader> */}
+    <Card className="border-b-0 border-x-0 border-t shadow-lg rounded-none overflow-hidden bg-background">
       <CardContent className="p-0 border-none shadow-none">
         {viewMode === "month" ? (
           <GanttMonthCalendar
@@ -451,30 +451,39 @@ export default function DispatchGanttTimeline({
             onJobMove={handleJobMove}
           />
         ) : (
-          <Shell variant={"normal"}>
+          <div>
             <div
               ref={timelineScrollRef}
-              className="overflow-x-auto overflow-y-auto  custom-scrollbar"
+              className="overflow-x-auto overflow-y-auto custom-scrollbar"
               style={{ maxHeight: "50vh" }}
             >
-              {/* Time Header */}
-              <div className="flex border-b sticky top-0 bg-white z-20 min-w-max">
-                <div className="w-48 flex-shrink-0 border-r p-3 font-semibold bg-brand-25">
-                  Technician
+              {/* Time Header with Drag Toggle */}
+              <div className="flex border-b sticky top-0 bg-background/95 backdrop-blur-sm z-20 min-w-max">
+                <div className="w-48 flex-shrink-0 border-r p-3 font-semibold bg-background/95 sticky left-0 z-50 flex items-center justify-between shadow-sm">
+                  <span className="text-xs font-black uppercase tracking-widest text-primary">
+                    Resources
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="drag-toggle-header"
+                      checked={isDragEnabled}
+                      onCheckedChange={setIsDragEnabled}
+                      className="data-[state=checked]:bg-blue-500 scale-75"
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-1 min-w-max relative">
                   {timeSlots.map((slot, index) => (
                     <div
                       key={index}
                       className={cn(
-                        "flex-1 p-2 text-center text-sm font-medium bg-brand-25",
+                        "flex-1 p-2 text-center text-sm font-medium bg-muted/20 border-r",
                         viewMode === "week" ? "min-w-[300px]" : "min-w-[100px]",
                       )}
                     >
                       {getTimeSlotLabel(slot)}
                     </div>
                   ))}
-                  {/* Floating Time Indicator - Header Part */}
                   {dragOverData && (
                     <div
                       className="absolute top-0 bottom-0 z-30 pointer-events-none transition-all duration-75"
@@ -508,7 +517,7 @@ export default function DispatchGanttTimeline({
                 ))}
               </div>
             </div>
-          </Shell>
+          </div>
         )}
       </CardContent>
     </Card>

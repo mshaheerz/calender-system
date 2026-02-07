@@ -7,41 +7,47 @@ import { cn } from "@/lib/utils";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { disableNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/element/disable-native-drag-preview";
 import { useGanttContext } from "@/lib/gantt/gantt-context";
-import { MapPin } from "lucide-react";
+import { MapPin, DollarSign, Clock } from "lucide-react";
 import { format } from "date-fns";
 
-const getStatusColor = (status, isDragging) => {
-  const baseColors = {
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 0,
+});
+
+const getStatusColor = (status: string, isDragging: boolean) => {
+  const baseColors: Record<string, string> = {
     scheduled:
-      "bg-blue-100 border-blue-100 hover:bg-blue-200",
+      "bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/60",
     in_progress:
-      "bg-orange-100 border-orange-100 hover:bg-orange-200",
+      "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60",
     completed:
-      "bg-green-100 border-green-100 hover:bg-green-200",
+      "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60",
     cancelled:
-      "bg-red-100 border-red-100 hover:bg-red-200",
+      "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60",
     default:
-      "bg-grey-100 border-grey-100 hover:bg-grey-200",
+      "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60",
   };
 
-  const draggingColors = {
+  const draggingColors: Record<string, string> = {
     scheduled:
-      "bg-blue-100 border-blue-100 ring-2 ring-blue-200 ring-offset-1 !opacity-100",
+      "bg-blue-100 dark:bg-blue-900 border-blue-500 ring-2 ring-blue-400 dark:ring-blue-600 !opacity-100 scale-105 shadow-xl text-blue-900 dark:text-blue-100",
     in_progress:
-      "bg-orange-100 border-orange-100 ring-2 ring-orange-200 ring-offset-1 !opacity-100",
+      "bg-amber-100 dark:bg-amber-900 border-amber-500 ring-2 ring-amber-400 dark:ring-amber-600 !opacity-100 scale-105 shadow-xl text-amber-900 dark:text-amber-100",
     completed:
-      "bg-green-100 border-green-100 ring-2 ring-green-200 ring-offset-1 !opacity-100",
+      "bg-emerald-100 dark:bg-emerald-900 border-emerald-500 ring-2 ring-emerald-400 dark:ring-emerald-600 !opacity-100 scale-105 shadow-xl text-emerald-900 dark:text-emerald-100",
     cancelled:
-      "bg-red-100 border-red-100 ring-2 ring-red-200 ring-offset-1 !opacity-100",
+      "bg-rose-100 dark:bg-rose-900 border-rose-500 ring-2 ring-rose-400 dark:ring-rose-600 !opacity-100 scale-105 shadow-xl text-rose-900 dark:text-rose-100",
     default:
-      "bg-grey-100 border-grey-100 ring-2 ring-grey-200 ring-offset-1 !opacity-100",
+      "bg-slate-100 dark:bg-slate-800 border-slate-500 ring-2 ring-slate-400 dark:ring-slate-600 !opacity-100 scale-105 shadow-xl text-slate-900 dark:text-slate-100",
   };
 
   const colors = isDragging ? draggingColors : baseColors;
   return colors[status] || colors.default;
 };
 
-const getStatusBadgeVariant = (status) => {
+const getStatusBadgeVariant = (status: string) => {
   switch (status) {
     case "scheduled":
       return "brand";
@@ -50,9 +56,9 @@ const getStatusBadgeVariant = (status) => {
     case "completed":
       return "success";
     case "cancelled":
-      return "error";
+      return "destructive";
     default:
-      return "grey";
+      return "secondary";
   }
 };
 
@@ -62,64 +68,73 @@ const JobCardPrimitive = memo(function JobCardPrimitive({
   cardRef,
   rightResizeRef,
   leftResizeRef,
-}) {
+}: any) {
   return (
     <div
       className={cn(
-        "relative group h-full",
+        "relative group h-full select-none",
         !isDragging && "transition-all duration-200",
-        isDragging && "!opacity-100 z-50", // Force container opacity
+        isDragging && "!opacity-100 z-50",
       )}
     >
       <Card
         ref={cardRef}
         className={cn(
-          "h-full cursor-grab hover:shadow-md border-l-4 overflow-hidden text-[10px]",
+          "h-full cursor-grab active:cursor-grabbing hover:shadow-lg border-l-4 overflow-hidden text-[10px]",
           !isDragging && "transition-all duration-200",
           getStatusColor(job.status, isDragging),
         )}
       >
-        <CardContent className="p-1 px-2 h-full flex flex-col justify-center">
-          <div className="space-y-0.5">
-            <p
-              className={cn(
-                "font-bold line-clamp-1 leading-tight",
-                isDragging ? "text-grey-900" : "text-grey-900",
+        <CardContent className="p-2 px-3 h-full flex flex-col justify-between">
+          <div className="space-y-1">
+            <div className="flex justify-between items-start gap-2">
+              <p className="font-bold line-clamp-1 leading-none text-[11px]">
+                {job.title}
+              </p>
+              {job.priority === "high" && (
+                <div
+                  className="h-2 w-2 rounded-full bg-rose-500 animate-pulse flex-shrink-0"
+                  title="High Priority"
+                />
               )}
-            >
-              {job.title}
-            </p>
-            <div
-              className={cn(
-                "flex items-center gap-1",
-                isDragging ? "text-grey-700" : "text-grey-700",
-              )}
-            >
-              <span className="font-medium whitespace-nowrap">
-                {format(job.startTime, "h:mm a")} -{" "}
-                {format(job.endTime, "h:mm a")}
-              </span>
             </div>
 
-            {/* Expanded details only if height permits (optional/simple for now) */}
-            {job.location && (
-              <div
-                className={cn(
-                  "items-center gap-1 opacity-80 hidden sm:flex",
-                  isDragging ? "text-grey-600" : "text-grey-600",
-                )}
-              >
-                <MapPin className="h-2.5 w-2.5" />
-                <span className="line-clamp-1">{job.location}</span>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1.5 text-muted-foreground font-medium text-[9px]">
+                <Clock className="h-2.5 w-2.5" />
+                <span className="whitespace-nowrap">
+                  {format(job.startTime, "h:mm a")} –{" "}
+                  {format(job.endTime, "h:mm a")}
+                </span>
               </div>
-            )}
 
+              {job.location && (
+                <div className="items-center gap-1 flex text-muted-foreground font-medium">
+                  <MapPin className="h-2.5 w-2.5" />
+                  <span className="line-clamp-1 text-[8px]">
+                    {job.location}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mt-auto pt-1">
             <Badge
-              variant={getStatusBadgeVariant(job.status)}
-              className="text-[9px] px-1 py-0 h-4 mt-0.5"
+              variant={getStatusBadgeVariant(job.status) as any}
+              className="text-[7px] px-1.5 py-0 h-4 font-bold"
             >
               {job.status.replace("_", " ")}
             </Badge>
+
+            {job.cost !== undefined && (
+              <div className="flex items-center gap-0.5 text-foreground font-bold text-[9px]">
+                <DollarSign className="h-2.5 w-2.5 text-emerald-600" />
+                <span>
+                  {currencyFormatter.format(job.cost).replace("$", "")}
+                </span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -128,10 +143,10 @@ const JobCardPrimitive = memo(function JobCardPrimitive({
       {leftResizeRef && (
         <div
           ref={leftResizeRef}
-          className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          title="Resize start time"
+          className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize flex items-center justify-start group-hover:opacity-100 opacity-0 transition-opacity z-20 pointer-events-auto"
+          title="Resize Start"
         >
-          <div className="w-1.5 h-6 bg-white border border-gray-300 rounded-full shadow-sm" />
+          <div className="w-1 h-1/2 bg-foreground/30 border border-border rounded-full shadow-sm ml-0.5" />
         </div>
       )}
 
@@ -139,23 +154,23 @@ const JobCardPrimitive = memo(function JobCardPrimitive({
       {rightResizeRef && (
         <div
           ref={rightResizeRef}
-          className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
-          title="Resize end time"
+          className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize flex items-center justify-end group-hover:opacity-100 opacity-0 transition-opacity z-20 pointer-events-auto"
+          title="Resize End"
         >
-          <div className="w-1.5 h-6 bg-white border border-gray-300 rounded-full shadow-sm" />
+          <div className="w-1 h-1/2 bg-foreground/30 border border-border rounded-full shadow-sm mr-0.5" />
         </div>
       )}
     </div>
   );
 });
 
-export const GanttJobCard = memo(({ job, technicianId }) => {
-  const cardRef = useRef(null);
+export const GanttJobCard = memo(({ job, technicianId }: any) => {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState({
     isDragging: false,
   });
 
-  const { instanceId, registerJobCard } = useGanttContext();
+  const { instanceId, registerJobCard, isDragEnabled } = useGanttContext();
 
   useEffect(() => {
     const element = cardRef.current;
@@ -169,13 +184,13 @@ export const GanttJobCard = memo(({ job, technicianId }) => {
     });
   }, [job.id, registerJobCard]);
 
-  const leftResizeRef = useRef(null);
-  const rightResizeRef = useRef(null);
+  const leftResizeRef = useRef<HTMLDivElement>(null);
+  const rightResizeRef = useRef<HTMLDivElement>(null);
 
   // Main Job Card Draggable
   useEffect(() => {
     const element = cardRef.current;
-    if (!element) return;
+    if (!element || !isDragEnabled) return;
 
     return draggable({
       element: element,
@@ -186,6 +201,7 @@ export const GanttJobCard = memo(({ job, technicianId }) => {
           jobId: job.id,
           technicianId: technicianId,
           instanceId,
+          job: job,
           grabOffset: input.clientX - rect.left,
         };
       },
@@ -199,12 +215,12 @@ export const GanttJobCard = memo(({ job, technicianId }) => {
         });
       },
     });
-  }, [instanceId, job.id, technicianId]);
+  }, [instanceId, job.id, job, technicianId, isDragEnabled]);
 
   // Left Resize Draggable
   useEffect(() => {
     const element = leftResizeRef.current;
-    if (!element) return;
+    if (!element || !isDragEnabled) return;
 
     return draggable({
       element: element,
@@ -213,6 +229,7 @@ export const GanttJobCard = memo(({ job, technicianId }) => {
         jobId: job.id,
         technicianId: technicianId,
         instanceId,
+        job: job,
       }),
       onDragStart: () => setState((prev) => ({ ...prev, isDragging: true })),
       onDrop: () => setState((prev) => ({ ...prev, isDragging: false })),
@@ -220,12 +237,12 @@ export const GanttJobCard = memo(({ job, technicianId }) => {
         disableNativeDragPreview({ nativeSetDragImage });
       },
     });
-  }, [instanceId, job.id, technicianId]);
+  }, [instanceId, job.id, job, technicianId, isDragEnabled]);
 
   // Right Resize Draggable
   useEffect(() => {
     const element = rightResizeRef.current;
-    if (!element) return;
+    if (!element || !isDragEnabled) return;
 
     return draggable({
       element: element,
@@ -234,6 +251,7 @@ export const GanttJobCard = memo(({ job, technicianId }) => {
         jobId: job.id,
         technicianId: technicianId,
         instanceId,
+        job: job,
       }),
       onDragStart: () => setState((prev) => ({ ...prev, isDragging: true })),
       onDrop: () => setState((prev) => ({ ...prev, isDragging: false })),
@@ -241,18 +259,16 @@ export const GanttJobCard = memo(({ job, technicianId }) => {
         disableNativeDragPreview({ nativeSetDragImage });
       },
     });
-  }, [instanceId, job.id, technicianId]);
+  }, [instanceId, job.id, job, technicianId, isDragEnabled]);
 
   return (
-    <>
-      <JobCardPrimitive
-        cardRef={cardRef}
-        leftResizeRef={leftResizeRef}
-        rightResizeRef={rightResizeRef}
-        job={job}
-        isDragging={state.isDragging || job.isPreview}
-      />
-    </>
+    <JobCardPrimitive
+      cardRef={cardRef}
+      leftResizeRef={leftResizeRef}
+      rightResizeRef={rightResizeRef}
+      job={job}
+      isDragging={state.isDragging || !!job.isPreview}
+    />
   );
 });
 

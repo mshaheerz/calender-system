@@ -10,10 +10,11 @@ import { addHours, addDays, addWeeks } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export const GanttTechnicianRow = memo(
-  ({ technician, jobs, timeSlots, viewMode, dragPreview }) => {
-    const rowRef = useRef(null);
-    const gridRef = useRef(null);
-    const { instanceId, registerTechnicianRow, isDragging } = useGanttContext();
+  ({ technician, jobs, timeSlots, viewMode, dragPreview }: any) => {
+    const rowRef = useRef<HTMLDivElement>(null);
+    const gridRef = useRef<HTMLDivElement>(null);
+    const { instanceId, registerTechnicianRow, isDragging, isDragEnabled } =
+      useGanttContext();
 
     useEffect(() => {
       if (!rowRef.current || !gridRef.current) return;
@@ -34,6 +35,7 @@ export const GanttTechnicianRow = memo(
           }),
           canDrop: ({ source }) => {
             return (
+              isDragEnabled &&
               source.data.instanceId === instanceId &&
               (source.data.type === "job-card" ||
                 source.data.type === "table-job" ||
@@ -45,11 +47,17 @@ export const GanttTechnicianRow = memo(
           getIsSticky: () => true,
         }),
       );
-    }, [technician.id, instanceId, registerTechnicianRow, timeSlots]);
+    }, [
+      technician.id,
+      instanceId,
+      registerTechnicianRow,
+      timeSlots,
+      isDragEnabled,
+    ]);
 
     // Calculate job position based on time
     const getJobPosition = useCallback(
-      (job) => {
+      (job: any) => {
         const start = timeSlots[0];
         const lastSlot = timeSlots[timeSlots.length - 1];
         const end =
@@ -87,7 +95,7 @@ export const GanttTechnicianRow = memo(
     const { positionedJobs, previewItem, totalLanes } = useMemo(() => {
       // Filter out the job being moved/resized from normal positioning
       const sourceJobId = dragPreview?.jobId;
-      const filteredJobs = jobs.filter((j) => j.id !== sourceJobId);
+      const filteredJobs = jobs.filter((j: any) => j.id !== sourceJobId);
 
       // Create a virtual job for the preview
       let virtualPreview = null;
@@ -115,11 +123,11 @@ export const GanttTechnicianRow = memo(
 
       allItems.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
-      const lanes = [];
-      let finalPreviewItem = null;
-      const result = [];
+      const lanes: Date[] = [];
+      let finalPreviewItem: any = null;
+      const result: any[] = [];
 
-      allItems.forEach((item) => {
+      allItems.forEach((item: any) => {
         let laneIndex = lanes.findIndex(
           (lastEndTime) => item.startTime.getTime() >= lastEndTime.getTime(),
         );
@@ -159,19 +167,24 @@ export const GanttTechnicianRow = memo(
     return (
       <div
         ref={rowRef}
-        className="flex border-b hover:bg-brand-50 transition-colors min-w-max"
+        className="flex border-b hover:bg-muted/30 transition-colors min-w-max bg-background"
       >
-        {/* Technician Info */}
-        <div className="w-48 flex-shrink-0 border-r p-3 flex items-start gap-2 pt-4">
-          <Avatar className="h-8 w-8">
+        {/* Technician Info (Sticky Left) */}
+        <div className="w-48 flex-shrink-0 border-r p-3 flex items-start gap-2 pt-4 bg-muted/80 backdrop-blur-md sticky left-0 z-20 shadow-sm">
+          <Avatar className="h-8 w-8 ring-2 ring-background shadow-sm">
             <AvatarImage src={technician.image || "/placeholder.svg"} />
-            <AvatarFallback className="text-xs bg-brand-100 text-brand-700">
+            <AvatarFallback className="text-xs bg-primary text-primary-foreground font-black">
               {fallback}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium truncate pt-1">
-            {technician.name}
-          </span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[11px] font-black uppercase tracking-tight truncate text-foreground leading-none mb-1">
+              {technician.name}
+            </span>
+            <span className="text-[9px] text-muted-foreground font-bold">
+              ID: {technician.id.slice(0, 4)}
+            </span>
+          </div>
         </div>
 
         {/* Timeline Grid */}
@@ -183,7 +196,7 @@ export const GanttTechnicianRow = memo(
           }}
         >
           {/* Time slot grid */}
-          {timeSlots.map((slot, index) => (
+          {timeSlots.map((slot: Date, index: number) => (
             <TimeSlotCell
               key={index}
               technicianId={technician.id}
@@ -240,8 +253,9 @@ GanttTechnicianRow.displayName = "GanttTechnicianRow";
 
 // Time slot cell component
 const TimeSlotCell = memo(
-  ({ technicianId, timeSlot, instanceId, viewMode }) => {
-    const cellRef = useRef(null);
+  ({ technicianId, timeSlot, instanceId, viewMode }: any) => {
+    const cellRef = useRef<HTMLDivElement>(null);
+    const { isDragEnabled } = useGanttContext();
 
     useEffect(() => {
       if (!cellRef.current) return;
@@ -251,6 +265,7 @@ const TimeSlotCell = memo(
         getData: () => ({ technicianId, timeSlot }),
         canDrop: ({ source }) => {
           return (
+            isDragEnabled &&
             source.data.instanceId === instanceId &&
             (source.data.type === "job-card" ||
               source.data.type === "table-job" ||
@@ -260,7 +275,7 @@ const TimeSlotCell = memo(
           );
         },
       });
-    }, [technicianId, timeSlot, instanceId]);
+    }, [technicianId, timeSlot, instanceId, isDragEnabled]);
 
     //for grid here put border-r
     return (

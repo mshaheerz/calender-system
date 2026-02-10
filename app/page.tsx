@@ -288,7 +288,7 @@ export default function App() {
                 </li>
                 <li>
                   <a
-                    href="https://github.com"
+                    href="https://github.com/mshaheerz/calender-system.git"
                     className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
                   >
                     GitHub <ExternalLink className="h-3 w-3" />

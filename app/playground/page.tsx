@@ -154,15 +154,15 @@ export default function PlaygroundPortal() {
 
       <footer className="border-t border-border/50 py-8 bg-muted/20">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-bold tracking-widest text-muted-foreground uppercase">
-          <p>© 2024 CALENDAR SYSTEM • PRAGMATIC ENGINE</p>
+          <p>© 2025 CALENDAR SYSTEM • PRAGMATIC ENGINE</p>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-foreground transition-colors">
+            <a href="https://github.com/mshaheerz/calender-system.git" className="hover:text-foreground transition-colors">
               Documentation
             </a>
-            <a href="#" className="hover:text-foreground transition-colors">
+            <a href="https://github.com/mshaheerz/calender-system.git" className="hover:text-foreground transition-colors">
               GitHub
             </a>
-            <a href="#" className="hover:text-foreground transition-colors">
+            <a href="https://github.com/mshaheerz/calender-system.git" className="hover:text-foreground transition-colors">
               Support
             </a>
           </div>
